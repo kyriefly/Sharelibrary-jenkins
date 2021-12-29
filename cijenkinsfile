@@ -1,6 +1,6 @@
 #!groovy
 pipline{
-	agent { node { label "master"}}
+	agent { node { label "build01"}}
 	stages{
 		stage("build"){
 			steps{
