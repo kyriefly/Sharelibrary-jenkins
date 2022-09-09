@@ -1,13 +1,78 @@
 #!groovy
-pipline{
-	agent { node { label "build01"}}
-	stages{
-		stage("build"){
-			steps{
-				script{
-					mvnHome = tool "M2"
-					sh "${mvnHome}/bin/mvn -v"
-				}
+// 引用共享库
+@Library("shareLibrary")_
+// 应用共享库的方法 （tools库日志显示颜色）
+def tools = new org.devops.tools()   
+
+// Pipeline
+pipeline {
+    agent any  // 指定运行的节点
+    
+    options {
+        timestamps()  //日志会有时间
+        skipDefaultCheckout()  //删除隐式checkout scm语句
+        disableConcurrentBuilds() //禁止并行
+        timeout(time: 1, unit: 'HOURS')  //流水线超时设置1h
+    }
+    stages {
+        // 拉取代码
+        stage ("Get code") {
+                steps {
+                    timeout(time:5, unit:"MINUTES"){ 
+                        script{
+                            println ('拉取代码')
+                            tools.PrintMes("拉代码","green")
+                    }
+                }
+            }
+        }
+        // 构建
+        stage ('Build') {
+                steps {
+                    timeout(time:20, unit:"MINUTES"){
+                        script{
+                            println ('编译打包')
+                            tools.PrintMes("编译打包","green")
+                    }
+                }
+            }
+        }
+        // 代码扫描
+        stage ('CodeScan') {
+                steps {
+                    timeout(time:20, unit:"MINUTES"){
+                        script{
+                            println ('代码扫描')
+                            tools.PrintMes("代码扫描","green")
+                    }
+                }
+            }
+        }
+    }
+
+    // 构建后的操作
+	post {
+		always {
+			script{
+				println("always:不论构建成功与否都会执行")
+			}
+		}
+		success {
+			script{
+				println("success:只有构建成功才会执行")
+				currentBuild.description = "\n构建成功！"
+			}
+		}
+		failure {
+			script{
+				println("failure:只有构建失败才会执行")
+				currentBuild.description = "\n构建失败!"
+			}
+		}
+		aborted {
+			script{
+				println("aborted:只有取消构建才会执行")
+				currentBuild.description = "\n构建取消!"
 			}
 		}
 	}
